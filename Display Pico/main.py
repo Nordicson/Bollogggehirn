@@ -1,0 +1,432 @@
+import time,math,RGB1602, encoder,machine, array, rp2, gc
+from machine import Pin, UART
+gc.enable()
+
+version = "##### 0.4.0 #####"
+
+#Zur Version :  Das Gerüst steht, menüs können eingetragen werden, ebenso funcs. 
+######UART########################################################################
+uart = machine.UART(0,baudrate=57600,bits=8,parity=None,stop=1,rx=Pin(13),tx=Pin(12))
+uart_buff = bytearray(7)
+
+def timer():
+    timer = time.ticks_ms()
+    return timer
+
+######LCD DISPLAY##################################################################
+lcd = RGB1602.RGB1602(16,2)
+lcdR,lcdG,lcdB = 40,255,20
+lcd.clear()
+lcd.setRGB(lcdR,lcdG,lcdB)
+lcd.printout("    Hello :)"  )
+lcd.setCursor(0,1)
+lcd.printout(version)
+
+time.sleep(1)
+def UpdateRow0(elements):
+    print("printing0", elements)
+    lcd.setCursor(0,0)
+    lcd.printout("                ")
+    lcd.setCursor(0,0)
+    if(type(elements) == list):
+        countelem = len(elements)
+        p = int(16/countelem)
+        for i in range(countelem):
+            lcd.setCursor(p*i,0)
+            lcd.printout(elements[i])
+    else:
+        lcd.printout(str(elements))
+    return
+
+def UpdateRow1(elements):
+    print("printing1", elements)
+    lcd.setCursor(0,1)
+    lcd.printout("                ")
+    lcd.setCursor(0,1)
+    if(type(elements) == list):
+        countelem = len(elements)
+        p = int(16/countelem)
+        for i in range(countelem):
+            lcd.setCursor(i*p,1)
+            lcd.printout(elements[i])
+            
+    else:
+        lcd.printout(elements)
+    return
+
+def Popup(row0,row1,seconds):
+    if(row0 != None):
+        lcd.setCursor(0,0)
+        lcd.printout("                ")
+        lcd.setCursor(0,0)
+        lcd.printout(row0)
+    if(row1 != None):
+        lcd.setCursor(0,1)
+        lcd.printout("                ")
+        lcd.setCursor(0,1)
+        lcd.printout(row1)
+    time.sleep(seconds)
+
+
+#ROTARY#########################################################################
+def Rot_A_Changed(change):
+    global currentfunc
+    if change == RotA.ROT_CCW:
+        #try:
+        if(currentfunc.shifted == False):
+            if(currentfunc.indexA < currentfunc.limA):
+                currentfunc.indexA += 1
+                currentfunc.updateA()
+        elif(currentfunc.indexD < currentfunc.limD):
+            currentfunc.indexD += 1
+            currentfunc.updateA()
+       # except:
+        #    print(currentfunc,"does not have an indexA/D that can be changed")
+    elif change == RotA.ROT_CW:
+        try:
+            if(currentfunc.shifted == False):
+                if(currentfunc.indexA > 0):
+                    currentfunc.indexA -= 1
+                    currentfunc.updateA()
+            elif(currentfunc.indexD > 0):
+                currentfunc.indexD -= 1
+                currentfunc.updateA()
+        except:
+            print(currentfunc,"does not have an indexA/D that can be changed")
+    elif change == RotA.SW_RELEASE:
+        print('PRESS')
+        onpressA()
+    elif change == RotA.SW_PRESS:
+        print('RELEASE')
+
+
+def Rot_B_Changed(change):
+    global currentfunc
+    if change == RotB.ROT_CCW:
+        try:
+            if(currentfunc.shifted == False):
+                if(currentfunc.indexB < currentfunc.limB):
+                    currentfunc.indexB += 1
+                    currentfunc.updateB()
+            elif(currentfunc.indexE < currentfunc.limE):
+                currentfunc.indexE += 1
+                currentfunc.updateB()
+        except:
+            print(currentfunc,"does not have an indexB/E that can be changed")
+    elif change == RotB.ROT_CW:
+        try:
+            if(currentfunc.shifted == False):
+                if(currentfunc.indexB > 0):
+                    currentfunc.indexB -= 1
+                    currentfunc.updateB()
+            elif(currentfunc.indexE > 0):
+                currentfunc.indexE -= 1
+                currentfunc.updateB()
+        except:
+            print(currentfunc,"does not have an indexB/E that can be changed")
+    elif change == RotB.SW_RELEASE:
+        print('PRESS')
+        onpressB()
+    elif change == RotB.SW_PRESS:
+        print('RELEASE')
+
+def Rot_C_Changed(change):
+    global currentfunc
+    if change == RotC.ROT_CCW:
+        try:
+            if(currentfunc.shifted == False):
+                if(currentfunc.indexC < currentfunc.limC):
+                    currentfunc.indexC += 1
+                    currentfunc.updateC()
+            elif(currentfunc.indexF < currentfunc.limF):
+                currentfunc.indexF += 1
+                currentfunc.updateC()
+        except:
+            print(currentfunc,"does not have an indexC/F that can be changed")
+    elif change == RotC.ROT_CW:
+        Rot_Changed = "C"
+        try:
+            if(currentfunc.shifted == False):
+                if(currentfunc.indexC > 0):
+                    currentfunc.indexC -= 1
+                    currentfunc.updateC()
+            elif(currentfunc.indexF > 0):
+                currentfunc.indexF -= 1
+                currentfunc.updateC()
+        except:
+            print(currentfunc,"does not have an indexC/F that can be changed")
+    elif change == RotC.SW_RELEASE:
+        print('PRESS')
+        onpressC()
+    elif change == RotC.SW_PRESS:
+        print('RELEASE')
+
+def onpressA():
+    try:
+        currentfunc.onpressA()
+        time.sleep(0.1)
+    except:
+        print(currentfunc,"has not got a onpressA Function")
+def onpressB():
+    try:
+
+        currentfunc.onpressB()
+        time.sleep(0.1)
+    except:
+        print(currentfunc,"has not got a onpressB Function")
+def onpressC():
+    try:
+        currentfunc.onpressC()
+        time.sleep(0.1)
+    except:
+        print(currentfunc,"has not got a onpressC Function")
+
+RotA = encoder.Rotary(2,4,3)
+RotB= encoder.Rotary(5,7,6)
+RotC = encoder.Rotary(8,10,9)
+
+RotA.add_handler(Rot_A_Changed)
+RotB.add_handler(Rot_B_Changed)
+RotC.add_handler(Rot_C_Changed)
+
+
+#MENUSTUFFS#################################################################
+currentfunc = None
+
+class menu():
+    def __init__(self,name,parent,message0,message1,message_time):
+        self.name = name
+        self.parent = parent
+        self.contents = []
+        self.shifted = False
+        self.indexA = 0
+        self.indexB = 0
+        self.indexC = 0
+        self.limA = 255
+        self.limB = 255
+        self.limC = 255
+        self.message0 = message0
+        self.message1 = message1
+        self.message_time = message_time
+
+        if(parent != None):
+            self.parent.add_child(self)
+    def add_child(self,child):
+        try:
+            self.contents.append(child)
+            print(self.name, "konnte", child, "als child eintragen")
+        except:
+            print(self.name, "konnte", child, "nicht als child eintragen")
+    def onpressA(self):
+        #return to parent
+        global currentfunc
+        try:
+            if(self.parent != None):
+                currentfunc = self.parent
+                print(currentfunc)
+                update()
+        except:
+            print(currentfunc,"can not reach its parent")
+    def onpressB(self):
+        #select content
+        global currentfunc
+       # try:
+        currentfunc = self.contents[self.indexA]
+        print(currentfunc)
+        update()
+       # except:
+        #print(self.contents[self.indexA],"can not be selected")
+        return
+
+    def onpressC(self):
+        #Maybe safe to Preset?
+        return
+
+    def update(self):
+        UpdateRow0(self.name)
+        UpdateRow1(self.contents[self.indexA].name)
+
+    def updateA(self):
+        UpdateRow1(self.contents[self.indexA].name)
+        return
+
+    def updateB(self):
+        return
+    def updateC(self):
+        return
+
+
+class func():
+    def __init__(self,ID,name,parent):
+        self.ID = ID
+        self.parent = parent
+        self.name = name
+        self.shifted = False
+        self.desc = []
+        self.indexA = 0
+        self.indexB = 0
+        self.indexC = 0
+        self.indexD = 0
+        self.indexE = 0
+        self.indexF = 0
+        self.limA = 255
+        self.limB = 255
+        self.limC = 255
+        self.limD = 255
+        self.limE = 255
+        self.limF = 255
+        self.message0 = None
+        self.message1 = None
+        self.message_time = 0
+        self.parent.add_child(self)
+
+    def onpressA(self):
+        global currentfunc
+        try:
+            currentfunc = self.parent
+            print(currentfunc)
+            update()
+        except:
+            print(self.name,"möchte von seinen Eltern aus Smaland abgeholt werden")
+    def onpressB(self):
+        if(self.shifted == False):
+            self.shifted = True
+            update()
+        else:
+            self.shifted = False
+            update()
+        return
+
+    def onpressC(self):
+        global uart_buff
+        try:
+            uart_buff[0] = self.ID
+            uart_buff[1] = self.indexA
+            uart_buff[2] = self.indexB
+            uart_buff[3] = self.indexC
+            uart_buff[4] = self.indexD
+            uart_buff[5] = self.indexE
+            uart_buff[6] = self.indexF
+            uart.write(uart_buff)
+            print("Sending: ",uart_buff)
+        except:
+            print(self.name,"can not execute the Callback Function")
+
+    def update(self):
+        if(self.shifted == False):
+            UpdateRow0([self.desc[0],self.desc[1],self.desc[2]])
+            UpdateRow1([self.indexA,self.indexB,self.indexC])
+        else:
+            UpdateRow0([self.desc[3],self.desc[4],self.desc[5]])
+            UpdateRow1([self.indexD,self.indexE,self.indexF])
+        return
+    def updateA(self):
+        if(self.shifted == False):
+            UpdateRow1([self.indexA,self.indexB,self.indexC])
+        else:
+            UpdateRow1([self.indexD,self.indexE,self.indexF])
+        return
+    def updateB(self):
+        if(self.shifted == False):
+            UpdateRow1([self.indexA,self.indexB,self.indexC])
+        else:
+            UpdateRow1([self.indexD,self.indexE,self.indexF])
+        return
+    def updateC(self):
+        if(self.shifted == False):
+            UpdateRow1([self.indexA,self.indexB,self.indexC])
+        else:
+            UpdateRow1([self.indexD,self.indexE,self.indexF])
+
+
+def update():
+    global currentfunc
+    Popup(currentfunc.message0,currentfunc.message1,currentfunc.message_time)
+    currentfunc.update()
+    
+    return
+
+#MODES###########################################################
+def modestruct():
+    solidcolor = func(1,"1 SolidColor",modeselect)
+    solidcolor.desc.extend(("R","G","B"," "," "," "))
+    solidcolor.LimA = AnzFarben
+
+    MultiColor = func(2,"2 MultiColor",modeselect)
+    solidcolor.desc.extend(("Col1","Col2","Col3","Col4","Col5","Col6"))
+    solidcolor.LimA = AnzFarben
+    solidcolor.LimB = AnzFarben
+    solidcolor.LimC = AnzFarben
+    solidcolor.LimD = AnzFarben
+    solidcolor.LimE = AnzFarben
+    solidcolor.LimF = AnzFarben
+    print(modeselect.contents)
+    
+    modeselect.limA = len(modeselect.contents) - 1
+    return
+def fxstruct():
+    noFX = func(100,"0 No Effect",effectselect)
+    noFX.desc.extend(("Nix","Nix","Nix","Nix","Nix","Nix"))
+
+    FX_squarewave = func(101,"1 Squarewave",effectselect)
+    FX_squarewave.desc.extend(("Count", "Edge", "","","",""))
+    
+    effectselect.limA  = len(effectselect.contents) 
+    return
+
+#Menüdefinitionen:################################################
+mainmenu = menu("home menu",None,'home'," ",0.4)
+AnzFarben =  35
+
+MasterBrightness = func(255,"MasterBrightness",mainmenu)
+MasterBrightness.desc.extend(("Brightness","","","","",""))
+MasterBrightness.indexA = 255
+
+BPM = func(254,"BPM",mainmenu)
+BPM.desc.extend(("BPM","+BPM/10","","","",""))
+BPM.indexA = 69
+
+
+effectselect = menu("effectselect",mainmenu,"effects"," ",0.4)
+modeselect = menu("modeselect",mainmenu,"modes"," ",0.4)
+mainmenu.limA = len(mainmenu.contents) - 1
+print(mainmenu.contents)
+#PRESET MENUSTUFFS############################################
+
+modestruct()
+fxstruct()
+
+
+#MAIN LOOP ###################################################
+currentfunc = mainmenu
+update()
+breath = 0
+breath_out = 0
+print("Allocated:",gc.mem_alloc(),"Bytes, Free:",gc.mem_free(),"Bytes")
+
+
+while(True):
+
+    if(timer() % 100 == 0 and breath < 30):
+        lcdR += 3
+        lcdG -= 3
+        lcd.setRGB(lcdR,lcdG,lcdB)
+        #print("Setting RGB")
+        breath += 1
+        if(breath == 30 - 1):
+            breath_out  =  30
+            
+    if(timer() % 100 == 0 and breath_out > 0):
+        lcdR -= 3
+        lcdG += 3
+        lcd.setRGB(lcdR,lcdG,lcdB)
+        breath_out -=1
+        if(breath_out == 1):
+            breath = 0
+    
+        
+    
+        
+        
+
+print("Allocated:",gc.mem_alloc(),"Bytes, Free:",gc.mem_free(),"Bytes")
