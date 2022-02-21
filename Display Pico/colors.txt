@@ -1,0 +1,15 @@
+0,0,0,schwarz
+255,255,255,weiß
+255,0,0,rot
+255,200,0,orange
+200,200,0,orange
+39,98,227,amber
+61,168,20,chartreuse
+172,219,10,burgundy
+187,188,20,chartreuse
+46,173,147,amber
+62,126,45,bronze
+155,200,85,chartreuse
+225,44,163,burgundy
+83,116,78,amethyst
+24,50,140,bronze
