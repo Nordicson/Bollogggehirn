@@ -13,7 +13,7 @@ def timer():
     timer = time.ticks_ms()
     return timer
 
-chars = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"]
+chars = ["del","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"]
 ######LCD DISPLAY##################################################################
 lcd = RGB1602.RGB1602(16,2)
 lcdR,lcdG,lcdB = 40,255,20
@@ -320,7 +320,7 @@ class func():
                 uart.write(uart_buff)
                 print("Sending: ",uart_buff)
             except:
-                print(self.name,"can not execute the Callback Function")
+                print(self.name,"can not execute the sending Function")
         else:
             print(self.special_C,"got triggered")
             self.special_C()
@@ -379,23 +379,37 @@ class naming_class():
             print("naming_class möchte von seinen Eltern aus Smaland abgeholt werden")
         
     def onpressB(self):
-        global chars
+        if(self.indexB == 0 and len(self.string) > 0):
+            self.string = self.string[:-1]
+            self.updateB()
+            return
         self.string += chars[self.indexB]
         self.updateB()
         return
     
     def onpressC(self):
-        if self.string == "":
-            Popup("needs a Name!","",0.7)
-            self.update()
-            return
-        else:
-            #!!!!!!!
-            toolbox.new_color(self.parent.indexA,self.parent.indexB,self.parent.indexC,self.string)
-            Popup("done!","",0.4)
-            self.onpressA()
-            self.string = ""
-            self.indexB = 0
+        if self.parent == color_new:
+            if self.string == "":
+                Popup("needs a Name!","",0.7)
+                self.update()
+                return
+            else:
+                toolbox.new_color(self.parent.indexA,self.parent.indexB,self.parent.indexC,self.string)
+                Popup("done!","",0.4)
+                self.onpressA()
+                self.string = ""
+                self.indexB = 0
+        elif self.parent == color_change_rgb:
+            if self.string == "":
+                Popup("needs a Name!","",0.7)
+                self.update()
+                return
+            else:
+                toolbox.change_color(color_change.indexA,self.parent.indexA,self.parent.indexB,self.parent.indexC,self.string)
+                Popup("done!","",0.4)
+                self.onpressA()
+                self.string = ""
+                self.indexB = 0
         return
     
     def update(self):
@@ -459,13 +473,8 @@ def modestruct():
     solidcolor.LimA = AnzFarben
 
     MultiColor = func(2,"2 MultiColor",modeselect)
-    solidcolor.desc.extend(("Col1","Col2","Col3","Col4","Col5","Col6"))
-    solidcolor.LimA = AnzFarben
-    solidcolor.LimB = AnzFarben
-    solidcolor.LimC = AnzFarben
-    solidcolor.LimD = AnzFarben
-    solidcolor.LimE = AnzFarben
-    solidcolor.LimF = AnzFarben
+    MultiColor.desc.extend(("Col1","Col2","Col3","Col4","Col5","Col6"))
+
     print(modeselect.contents)
     
     modeselect.limA = len(modeselect.contents) - 1
@@ -477,7 +486,7 @@ def fxstruct():
     FX_squarewave = func(101,"1 Squarewave",effectselect)
     FX_squarewave.desc.extend(("Count", "Edge", "","","",""))
     
-    effectselect.limA  = len(effectselect.contents) 
+    effectselect.limA  = len(effectselect.contents) - 1
     return
 
 #Menüdefinitionen:################################################
@@ -507,6 +516,7 @@ color_naming = naming_class(color_new)
 
 def color_name():
     global currentfunc
+    naming_class.parent = color_new
     currentfunc = color_naming
     currentfunc.update()
     time.sleep(0.2)
@@ -515,10 +525,10 @@ color_new.desc.extend(("r","g","b","","",""))
 color_new.special_C = color_name
 #
 color_change = func(201,"change color",color_menu)
-color_change.desc.extend(("Nr:     ","Change!","","","",""))
+color_change.desc.extend(("Nr:","Change!","","","",""))
 color_change.indexB = None
 color_change.indexC = None
-color_change.limA = len(toolbox.get_colors())
+color_change.limA = len(toolbox.get_colors()) - 1
 
 color_change_rgb = func(202,"change_col_rgb",color_change)
 color_change_rgb.desc.extend(("r","g","b","","",""))
@@ -526,17 +536,19 @@ color_change_rgb.desc.extend(("r","g","b","","",""))
 def color_change_to_rgb():
     global currentfunc
     colors = toolbox.get_colors()
-    color_change_rgb.indexA = colors[color_change.indexA][0]
-    color_change_rgb.indexB = colors[color_change.indexA][1]
-    color_change_rgb.indexC = colors[color_change.indexA][2]
-
+    color_change_rgb.indexA = int(colors[color_change.indexA][0])
+    color_change_rgb.indexB = int(colors[color_change.indexA][1])
+    color_change_rgb.indexC = int(colors[color_change.indexA][2])
+    
     currentfunc = color_change_rgb
     currentfunc.update()
+    print(currentfunc,"changed")
     time.sleep(0.2)
     
 def color_changer():
     global currentfunc
     colors = toolbox.get_colors()
+    color_naming.parent = color_change_rgb
     color_naming.string = colors[color_change.indexA][3]
     currentfunc = color_naming
     currentfunc.update()
@@ -545,6 +557,21 @@ def color_changer():
 color_change.special_C = color_change_to_rgb
 color_change_rgb.special_C = color_changer
 
+#
+color_del = func(203,"delete color",color_menu)
+color_del.desc.extend(("Nr:","","Delete","","",""))
+color_del.indexB = None
+color_del.indexC = None
+
+def color_delete():
+    colors = toolbox.get_colors()
+    ID = color_del.indexA
+    name = colors[ID][3]
+    toolbox.del_color(ID)
+    Popup("done!","tschau %s" %name,0.4)
+    update()
+
+color_del.special_C = color_delete
 #
 color_show_all = func(210,"color weel",color_menu)
 color_wheel = color_wheel_class(color_show_all)

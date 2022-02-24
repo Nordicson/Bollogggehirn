@@ -23,6 +23,11 @@ def set_colors(col_arr):
     with open("colors.txt","w") as color_text:
         color_text.write(string)
     return
+def del_color(ID):
+    coll_arr = get_colors()
+    col_arr.pop(ID)
+    set_colors(col_arr)
+    return
 
 def new_color(r,g,b,name):
     col_arr = get_colors()
