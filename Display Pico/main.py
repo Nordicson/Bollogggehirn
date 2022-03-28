@@ -502,8 +502,8 @@ def modestruct():
     solidcolor = func(1,"1 SolidColor",modeselect)
     solidcolor.desc.extend(("R","G","B"," "," "," "))
 
-    MultiColor = func(2,"2 MultiColor",modeselect)
-    MultiColor.desc.extend(("Col1","Col2","Col3","Col4","Col5","Col6"))
+    MultiColor = func(2,"2 Checkerbox",modeselect)
+    MultiColor.desc.extend(("R","G","B","ON","OFF","FPS"))
 
     print(modeselect.contents)
     
