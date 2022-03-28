@@ -23,6 +23,13 @@ leds_strip_4 = 70
 leds_strip_5 = 70
 leds_strip_6 = 70
 
+strip1 = [0 for i in range(leds_strip_1)]
+strip2 = [0 for i in range(leds_strip_2)]
+strip3 = [0 for i in range(leds_strip_3)]
+strip4 = [0 for i in range(leds_strip_4)]
+strip5 = [0 for i in range(leds_strip_5)]
+strip6 = [0 for i in range(leds_strip_6)]
+
 strip1 = neopixel.NeoPixel(pin_streifen_1, leds_strip_1, brightness = 1.0, auto_write = False)
 strip2 = neopixel.NeoPixel(pin_streifen_2, leds_strip_2, brightness = 1.0, auto_write = False)
 strip3 = neopixel.NeoPixel(pin_streifen_3, leds_strip_3, brightness = 1.0, auto_write = False)
@@ -73,7 +80,7 @@ class Mode():
         self.par_4 = par_4
         self.par_5 = par_5
         self.par_6 = par_6
-        self.arr = []
+        self.arr = [[0,0,0] for i in range(70)]
     
     def get_params(self):
         return [self.id, self.par_1, self.par_2, self.par_3, self.par_4, self.par_5, self.par_6]
@@ -96,18 +103,21 @@ class Debug(Mode):
         self.par_4 = 0
         self.par_5 = 0
         self.par_6 = 0
-        self.arr = []
+        self.arr = [[0,0,0] for i in range(70)]
 
 class Mode_Solid_Color(Mode):
     def get_array(self):
-        params = super().get_params(self)
-        COLOR_R,COLOR_G,COLOR_B = params[1], params[2], params[3]
+        params = super().get_params()
+        COLOR_R = params[1]
+        COLOR_G = params[2]
+        COLOR_B = params[3]
         return [[COLOR_R,COLOR_G,COLOR_B] for i in range(70)]
 
 class Mode_Checkerbox(Mode):
     def __init__(self,id, par_1, par_2, par_3, par_4, par_5, par_6):
         super().__init__(id,par_1, par_2, par_3, par_4, par_5, par_6)
-        self.move = self.par_6
+        if par_4 == 0:
+            par_4 = 1
         self.arr = [[0,0,0] for i in range(70)]
         self.move_count = 0
         i = 0
@@ -115,25 +125,33 @@ class Mode_Checkerbox(Mode):
             modulo = (i % (par_4 + par_5))
             if ((modulo >= 0) & (modulo < par_4)):
                 self.arr[i] = [par_1, par_2, par_3]
-            i = i + 1             
-
+            i = i + 1
+            
     def get_array(self):
         return self.arr
 
     def set_array(self, arr):
         self.arr = arr
 
-    def frame_step(self):
-        if self.move_count == self.move:
-            new_arr = []
-            new_arr.append(self.arr[69])
-            new_arr.append(self.arr[0:69])
+    def frame_step(self): 
+  
+        if self.move_count == self.par_6:
+            new_arr = self.arr[:]
+            new_arr[0] = self.arr[69]
+            new_arr[1:70] = self.arr[0:69]
             self.set_array(new_arr)
             self.move_count = 0
         else:
-            self.move_count += 1
+            #print(self.move_count)
+            if (self.move_count > self.par_6):
+                self.move_count = 0
+            else:
+                self.move_count += 1
 
     def new_param(self):
+        self.arr = [[0,0,0] for i in range(70)]
+        if self.par_4 == 0:
+            self.par_4 = 1
         i = 0
         while i < 70:
             modulo = (i % (self.par_4 + self.par_5))
@@ -156,12 +174,12 @@ def new_data():
 
     if(id > 0 & id < 100):
         if(current_mode.id == id):
-            current_mode.par_1 = data[1]
-            current_mode.par_2 = data[2]
-            current_mode.par_3 = data[3]
-            current_mode.par_4 = data[4]
-            current_mode.par_5 = data[5]
-            current_mode.par_6 = data[6]
+            current_mode.par_1 = incoming[1]
+            current_mode.par_2 = incoming[2]
+            current_mode.par_3 = incoming[3]
+            current_mode.par_4 = incoming[4]
+            current_mode.par_5 = incoming[5]
+            current_mode.par_6 = incoming[6]
             current_mode.new_param()
         else:
             current_mode = find_mode(incoming)
@@ -188,7 +206,7 @@ def find_mode(data):
         return Mode_Checkerbox(id,data[1],data[2],data[3],data[4],data[5],data[6])
 
 #MAINLOOP     ######################################################################              
-refresh_rate  = 30 #ms
+refresh_rate  = 1 #ms
 time_since_refresh = time.monotonic()
 
 current_mode = Debug()
@@ -213,10 +231,19 @@ while(True):
     
 
     if(currenttime - refresh_rate < time_since_refresh):
-        current_mode.set_color(20,233,5)
         current_mode.frame_step()
         
-        strip1 = current_mode.get_array()
+        arr1 = current_mode.get_array()
+        #print(arr1[:10])
+        for i in range(70):
+            #print(type(strip1[i]))
+            strip1[i] = arr1[i][0],arr1[i][1],arr1[i][2]
+            strip2[i] = arr1[i][0],arr1[i][1],arr1[i][2]
+            strip3[i] = arr1[i][0],arr1[i][1],arr1[i][2]
+            strip4[i] = arr1[i][0],arr1[i][1],arr1[i][2]
+            strip5[i] = arr1[i][0],arr1[i][1],arr1[i][2]
+            strip6[i] = arr1[i][0],arr1[i][1],arr1[i][2]
+        
         strip1.show()
         strip2.show()
         strip3.show()
