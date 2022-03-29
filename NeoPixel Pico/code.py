@@ -1,12 +1,11 @@
 #Neopixel Handler, zweiter Teil des Bollogggehirn V4.0
-#TODO: Everything
 #Die genauigkeit von time.monotonic() geht bergab nach einer stunde.
 
 import board,busio,digitalio,time,neopixel,random,math
 
 #SETUP ###############################################
 
-uart = busio.UART(tx=board.GP0,rx = board.GP1,bits = 8,baudrate=57600,stop=1,parity=None,timeout=0.01)
+uart = busio.UART(tx=board.GP0,rx = board.GP1,bits = 8,baudrate=57600,stop=1,parity=None,timeout=0.00001)
 incoming = [0 for i in range(7)]
 
 pin_streifen_1 = board.GP2
@@ -51,25 +50,7 @@ master_brightness = 1.0
 BPM = 69.0
 colors = []
 
-def change_BPM(BPM_new,tenth):
-    global BPM
-    BPM = BPM_new + tenth/10
 
-def change_master_brightness(data):
-    global master_brightness
-    master_brightness = data/255
-
-def color_new(r,g,b):
-    global colors
-    colors.append([r,g,b])
-
-def color_change(r,g,b,ID):
-    global colors
-    colors[ID] = [r,g,b]
-
-def color_del(ID):
-    global colors
-    colors.pop(ID)
 #MODES  ################################
 class Mode():
     def __init__(self,id,par_1,par_2,par_3,par_4,par_5,par_6):
@@ -93,7 +74,11 @@ class Mode():
     
     def new_param(self):
         return
-        
+
+    def bpm_step(self):
+        return
+
+
 class Debug(Mode):
     def __init__(self):
         self.id = 0
@@ -107,6 +92,7 @@ class Debug(Mode):
 
 class Mode_Solid_Color(Mode):
     def get_array(self):
+        global master_brightness
         params = super().get_params()
         COLOR_R = params[1]
         COLOR_G = params[2]
@@ -159,13 +145,8 @@ class Mode_Checkerbox(Mode):
                 self.arr[i] = [self.par_1, self.par_2, self.par_3]
             i = i + 1
         
-#EFFECTS ###############################
-def FX_nightsky():
-    return
-    
-
-   
-    return
+        
+#NEW DATA ##############################
 def new_data():
     #All modes need to be checked in at the new_data lobby, from witch 
     global incoming
@@ -173,7 +154,9 @@ def new_data():
     id = incoming[0]
 
     if(id > 0 & id < 100):
+        #Modes are seperated here
         if(current_mode.id == id):
+            #in case the mode stays the same
             current_mode.par_1 = incoming[1]
             current_mode.par_2 = incoming[2]
             current_mode.par_3 = incoming[3]
@@ -181,9 +164,9 @@ def new_data():
             current_mode.par_5 = incoming[5]
             current_mode.par_6 = incoming[6]
             current_mode.new_param()
+            #else the currentmode will be searched for
         else:
             current_mode = find_mode(incoming)
-
 
     elif(id == 0):
         print("debug")
@@ -205,12 +188,35 @@ def find_mode(data):
     if(id == 2):
         return Mode_Checkerbox(id,data[1],data[2],data[3],data[4],data[5],data[6])
 
+# TOOLS ################################
+
+def change_BPM(BPM_new,tenth):
+    global BPM
+    BPM = BPM_new + tenth/10
+
+def change_master_brightness(data):
+    global master_brightness
+    master_brightness = data/255
+
+def color_new(r,g,b):
+    global colors
+    colors.append([r,g,b])
+
+def color_change(r,g,b,ID):
+    global colors
+    colors[ID] = [r,g,b]
+
+def color_del(ID):
+    global colors
+    colors.pop(ID)
+
+
 #MAINLOOP     ######################################################################              
 refresh_rate  = 1 #ms
 time_since_refresh = time.monotonic()
 
 current_mode = Debug()
-current_FX = []
+current_FX = Debug()
 
 while(True):
     currenttime = time.monotonic()
@@ -230,7 +236,7 @@ while(True):
     
     
 
-    if(currenttime - refresh_rate < time_since_refresh):
+    if((currenttime - refresh_rate) > time_since_refresh):
         current_mode.frame_step()
         
         arr1 = current_mode.get_array()
@@ -251,11 +257,3 @@ while(True):
         strip5.show()
         strip6.show()
         time_since_refresh = currenttime
-
-
-#[Strip Array] ->
-#   [Colored by Mode] ->
-#       [Masked with Effect] ->
-#                [Masked by Fade] ->
-#                   [Masterbrightness] ->
-#                                    [LED-STRIP]
