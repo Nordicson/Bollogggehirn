@@ -519,21 +519,19 @@ def modestruct():
 #Set Limits A-F of index with:  [].limA = Limit
 #Set Index A-F with:            [].indexA = Value
 
-def fxstruct():
+""" def fxstruct():
     noFX = func(100,"0 No Effect",effectselect)
     noFX.desc.extend(("Nix","Nix","Nix","Nix","Nix","Nix"))
 
-    FX_stars = func(101,"1 Star Sky",effectselect)
-    FX_stars.desc.extend(("menge","size","life","pulse","moveL","moveR"))
-    FX_stars.limA = 50 #Menge
-    FX_stars.indexA = 20
-    FX_stars.limB = 20 #Größe
-    FX_stars.indexB = 2
-    FX_stars.limC = 20 #Wert in sekunden?
-    FX_stars.indexC = 5
-    FX_stars.limD = 10 #Puls : Skala von 1 bis 10 (relativ zur größe maybe x1.1 - x2 ) 0 is off.
-    FX_stars.limE = 20 #Bewegung nach Links     LEDs pro Sek/10
-    FX_stars.limF = 20 #Bewegung nach Rechts, wenn beides existiert, bewegt sich der Anteil mit der Geschwindigkeit.
+    FX_mask_stars = func(101,"1 Stars",effectselect)
+    FX_mask_stars.desc.extend(("Menge","size","life"," "," "," "))
+    FX_mask_stars.limA = 50 #Amount
+    FX_mask_stars.indexA = 20
+    FX_mask_stars.limB = 20 #Size
+    FX_mask_stars.indexB = 2
+    FX_mask_stars.limC = 100 #Life in Frames
+    FX_mask_stars.indexC = 20
+
     #END HERE
     effectselect.limA  = len(effectselect.contents) - 1
     return
@@ -541,7 +539,7 @@ def colorstruct():
     colors = toolbox.get_colors()
     for element in colors:
         UART_special_delivery(200,element[0],element[1],element[2],0,0,0)
-
+ """
 #Menüdefinitionen:################################################
 mainmenu = menu("home menu",None,'home'," ",0.4)
 AnzFarben =  35
@@ -555,7 +553,7 @@ BPM.desc.extend(("BPM","+BPM/10","","","",""))
 BPM.indexA = 69
 
 
-effectselect = menu("effectselect",mainmenu,"effects"," ",0.4)
+#effectselect = menu("effectselect",mainmenu,"effects"," ",0.4)
 modeselect = menu("modeselect",mainmenu,"modes"," ",0.4)
 color_menu = menu("edit colors",mainmenu,"edit colors","",0.4)
 preset_menu = menu("presets",mainmenu,"presets","",0.4)
@@ -672,7 +670,7 @@ preset_new.indexC = None
 #MAIN LOOP ###################################################
 
 modestruct()
-fxstruct()
+#fxstruct()
 colorstruct()
 
 currentfunc = mainmenu
