@@ -6,11 +6,7 @@ gc.enable()
 version = "Bolloggehirn 0.4"
 
 #TODO
-#Colorsettings  <-done
 #Presetsettings
-#Cleaning UART (Weird Bug yay)
-#FX_stars
-#Documenting a bit <-done
 # 
 
 ######UART########################################################################
@@ -327,6 +323,7 @@ class func():
                 uart_buff[6] = int(self.indexF)
                 uart.write(uart_buff)
                 print("Sending: ",uart_buff)
+                time.sleep(0.2)
             except:
                 print(self.name,"can not execute the sending Function")
         else:
@@ -483,6 +480,7 @@ def UART_special_delivery(mode_byte,byte_1,byte_2,byte_3,byte_4,byte_5,byte_6):
         uart_buff[6] = int(byte_6)
         uart.write(uart_buff)
         print("Sending: ",uart_buff)
+        time.sleep(0.2)
     except:
         print("no pizza today")
         
@@ -535,11 +533,12 @@ def modestruct():
     #END HERE
     effectselect.limA  = len(effectselect.contents) - 1
     return
+    """
 def colorstruct():
     colors = toolbox.get_colors()
     for element in colors:
         UART_special_delivery(200,element[0],element[1],element[2],0,0,0)
- """
+
 #Menüdefinitionen:################################################
 mainmenu = menu("home menu",None,'home'," ",0.4)
 AnzFarben =  35
