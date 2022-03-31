@@ -16,19 +16,6 @@ pin_streifen_4 = board.GP5
 pin_streifen_5 = board.GP6
 pin_streifen_6 = board.GP7
 
-# pin_streifen_1 = digitalio.DigitalInOut(board.GP2)
-# pin_streifen_2 = digitalio.DigitalInOut(board.GP3)
-# pin_streifen_3 = digitalio.DigitalInOut(board.GP4)
-# pin_streifen_4 = digitalio.DigitalInOut(board.GP5)
-# pin_streifen_5 = digitalio.DigitalInOut(board.GP6)
-# pin_streifen_6 = digitalio.DigitalInOut(board.GP7)
-# pin_streifen_1.direction = digitalio.Direction.OUTPUT
-# pin_streifen_2.direction = digitalio.Direction.OUTPUT
-# pin_streifen_3.direction = digitalio.Direction.OUTPUT
-# pin_streifen_4.direction = digitalio.Direction.OUTPUT
-# pin_streifen_5.direction = digitalio.Direction.OUTPUT
-# pin_streifen_6.direction = digitalio.Direction.OUTPUT
-
 leds_strip_1 = 70
 leds_strip_2 = 70
 leds_strip_3 = 70
@@ -203,8 +190,22 @@ def new_data():
     global incoming
     global current_mode
     id = incoming[0]
-
-    if(id > 0 & id < 100):
+    
+    if(id == 0):
+        print("debug")
+    elif(id == 200):
+        color_new(incoming[1],incoming[2],incoming[3])
+    elif(id == 201):
+        color_change(incoming[1],incoming[2],incoming[3],incoming[4])
+    elif(id == 203):
+        color_del(incoming[1])
+    elif(id == 254):
+        change_BPM(incoming[1],incoming[2])
+    elif(id == 255):
+        change_master_brightness(incoming[1])
+        
+    
+    elif(id > 0 & id < 100):
         #Modes are seperated here
         if(current_mode.id == id):
             #in case the mode stays the same
@@ -218,19 +219,6 @@ def new_data():
             #else the currentmode will be searched for
         else:
             current_mode = find_mode(incoming)
-
-    elif(id == 0):
-        print("debug")
-    elif(id == 200):
-        color_new(incoming[1],incoming[2],incoming[3])
-    elif(id == 201):
-        color_change(incoming[1],incoming[2],incoming[3],incoming[4])
-    elif(id == 203):
-        color_del(incoming[1])
-    elif(id == 254):
-        change_master_brightness(incoming[1])
-    elif(id == 255):
-        change_BPM(incoming[1],incoming[2])
     
     
 
@@ -251,6 +239,7 @@ def change_BPM(BPM_new,tenth):
 def change_master_brightness(data):
     global master_brightness
     master_brightness = data/255
+    print(master_brightness)
 
 def color_new(r,g,b):
     global colors
@@ -265,26 +254,33 @@ def color_del(ID):
     colors.pop(ID)
 
 def finish():
+    global master_brightness
     arr1,arr2,arr3,arr4,arr5,arr6 = current_mode.get_arrays()
-    arr1 * master_brightness
-    arr2 * master_brightness
-    arr3 * master_brightness
-    arr4 * master_brightness
-    arr5 * master_brightness
-    arr6 * master_brightness
+#     arr1 * master_brightness
+#     arr2 * master_brightness
+#     arr3 * master_brightness
+#     arr4 * master_brightness
+#     arr5 * master_brightness
+#     arr6 * master_brightness
+    new1 = arr1 * master_brightness
+    new2 = arr2 * master_brightness
+    new3 = arr3 * master_brightness
+    new4 = arr4 * master_brightness
+    new5 = arr5 * master_brightness
+    new6 = arr6 * master_brightness 
     
     for i in range(70):
-        test = arr1[i].tolist()
+        test = new1[i].tolist()
         strip1[i] = test
-        test = arr2[i].tolist()
+        test = new2[i].tolist()
         strip2[i] = test
-        test = arr3[i].tolist()
+        test = new3[i].tolist()
         strip3[i] = test
-        test = arr4[i].tolist()
+        test = new4[i].tolist()
         strip4[i] = test
-        test = arr5[i].tolist()
+        test = new5[i].tolist()
         strip5[i] = test
-        test = arr6[i].tolist()
+        test = new6[i].tolist()
         strip6[i] = test
 
         
