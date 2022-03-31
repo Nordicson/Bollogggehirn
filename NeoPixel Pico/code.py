@@ -2,6 +2,7 @@
 #Die genauigkeit von time.monotonic() geht bergab nach einer stunde.
 
 import board,busio,digitalio,time,neopixel,random,math
+import ulab.numpy as np
 
 #SETUP ###############################################
 
@@ -15,19 +16,25 @@ pin_streifen_4 = board.GP5
 pin_streifen_5 = board.GP6
 pin_streifen_6 = board.GP7
 
+# pin_streifen_1 = digitalio.DigitalInOut(board.GP2)
+# pin_streifen_2 = digitalio.DigitalInOut(board.GP3)
+# pin_streifen_3 = digitalio.DigitalInOut(board.GP4)
+# pin_streifen_4 = digitalio.DigitalInOut(board.GP5)
+# pin_streifen_5 = digitalio.DigitalInOut(board.GP6)
+# pin_streifen_6 = digitalio.DigitalInOut(board.GP7)
+# pin_streifen_1.direction = digitalio.Direction.OUTPUT
+# pin_streifen_2.direction = digitalio.Direction.OUTPUT
+# pin_streifen_3.direction = digitalio.Direction.OUTPUT
+# pin_streifen_4.direction = digitalio.Direction.OUTPUT
+# pin_streifen_5.direction = digitalio.Direction.OUTPUT
+# pin_streifen_6.direction = digitalio.Direction.OUTPUT
+
 leds_strip_1 = 70
 leds_strip_2 = 70
 leds_strip_3 = 70
 leds_strip_4 = 70
 leds_strip_5 = 70
 leds_strip_6 = 70
-
-strip1 = [0 for i in range(leds_strip_1)]
-strip2 = [0 for i in range(leds_strip_2)]
-strip3 = [0 for i in range(leds_strip_3)]
-strip4 = [0 for i in range(leds_strip_4)]
-strip5 = [0 for i in range(leds_strip_5)]
-strip6 = [0 for i in range(leds_strip_6)]
 
 strip1 = neopixel.NeoPixel(pin_streifen_1, leds_strip_1, brightness = 1.0, auto_write = False)
 strip2 = neopixel.NeoPixel(pin_streifen_2, leds_strip_2, brightness = 1.0, auto_write = False)
@@ -61,16 +68,21 @@ class Mode():
         self.par_4 = par_4
         self.par_5 = par_5
         self.par_6 = par_6
-        self.arr = [[0,0,0] for i in range(70)]
+        self.arr1 = np.empty((70,3))
+        self.arr2 = np.empty((70,3))
+        self.arr3 = np.empty((70,3))
+        self.arr4 = np.empty((70,3))
+        self.arr5 = np.empty((70,3))
+        self.arr6 = np.empty((70,3))
     
     def get_params(self):
         return [self.id, self.par_1, self.par_2, self.par_3, self.par_4, self.par_5, self.par_6]
 
+    def get_arrays(self):
+        return self.arr1,self.arr2,self.arr3,self.arr4,self.arr5,self.arr6
+
     def frame_step(self):
         return
-    
-    def get_array(self):
-        return self.arr
     
     def new_param(self):
         return
@@ -88,44 +100,70 @@ class Debug(Mode):
         self.par_4 = 0
         self.par_5 = 0
         self.par_6 = 0
-        self.arr = [[0,0,0] for i in range(70)]
+        self.arr1 = np.empty((70,3))
+        self.arr2 = np.empty((70,3))
+        self.arr3 = np.empty((70,3))
+        self.arr4 = np.empty((70,3))
+        self.arr5 = np.empty((70,3))
+        self.arr6 = np.empty((70,3))
 
 class Mode_Solid_Color(Mode):
-    def get_array(self):
-        global master_brightness
-        params = super().get_params()
-        COLOR_R = params[1]
-        COLOR_G = params[2]
-        COLOR_B = params[3]
-        return [[COLOR_R,COLOR_G,COLOR_B] for i in range(70)]
+    def __init__(self, id, par_1, par_2, par_3, par_4, par_5, par_6):
+        super().__init__(id, par_1, par_2, par_3, par_4, par_5, par_6)
+        color = np.array([par_1,par_2,par_3]) 
+        self.arr1[:] = color
+        self.arr2[:] = color
+        self.arr3[:] = color
+        self.arr4[:] = color
+        self.arr5[:] = color
+        self.arr6[:] = color
+
+    def new_param(self):
+        color = np.array([self.par_1,self.par_2,self.par_3]) 
+        self.arr1[:] = color
+        self.arr2[:] = color
+        self.arr3[:] = color
+        self.arr4[:] = color
+        self.arr5[:] = color
+        self.arr6[:] = color
 
 class Mode_Checkerbox(Mode):
     def __init__(self,id, par_1, par_2, par_3, par_4, par_5, par_6):
         super().__init__(id,par_1, par_2, par_3, par_4, par_5, par_6)
+
         if par_4 == 0:
             par_4 = 1
-        self.arr = [[0,0,0] for i in range(70)]
         self.move_count = 0
+        color = np.array([par_1,par_2,par_3])
         i = 0
         while i < 70:
             modulo = (i % (par_4 + par_5))
             if ((modulo >= 0) & (modulo < par_4)):
-                self.arr[i] = [par_1, par_2, par_3]
+                self.arr1[i] = color
+                self.arr2[i] = color
+                self.arr3[i] = color
+                self.arr4[i] = color
+                self.arr5[i] = color
+                self.arr6[i] = color
             i = i + 1
-            
-    def get_array(self):
-        return self.arr
-
-    def set_array(self, arr):
-        self.arr = arr
-
+        
     def frame_step(self): 
   
         if self.move_count == self.par_6:
-            new_arr = self.arr[:]
-            new_arr[0] = self.arr[69]
-            new_arr[1:70] = self.arr[0:69]
-            self.set_array(new_arr)
+            
+            new_arr1 = np.roll(self.arr1.copy(),1,axis = 0)
+            self.arr1 = new_arr1.copy()
+            new_arr2 = np.roll(self.arr2.copy(),1,axis = 0)
+            self.arr2 = new_arr2.copy()
+            new_arr3 = np.roll(self.arr3.copy(),1,axis = 0)
+            self.arr3 = new_arr3.copy()
+            new_arr4 = np.roll(self.arr4.copy(),1,axis = 0)
+            self.arr4 = new_arr4.copy()
+            new_arr5 = np.roll(self.arr5.copy(),1,axis = 0)
+            self.arr5 = new_arr5.copy()
+            new_arr6 = np.roll(self.arr6.copy(),1,axis = 0)
+            self.arr6 = new_arr6.copy()
+
             self.move_count = 0
         else:
             #print(self.move_count)
@@ -135,17 +173,30 @@ class Mode_Checkerbox(Mode):
                 self.move_count += 1
 
     def new_param(self):
-        self.arr = [[0,0,0] for i in range(70)]
+        self.arr1 = np.empty((70,3))
+        self.arr2 = np.empty((70,3))
+        self.arr3 = np.empty((70,3))
+        self.arr4 = np.empty((70,3))
+        self.arr5 = np.empty((70,3))
+        self.arr6 = np.empty((70,3))
+
         if self.par_4 == 0:
             self.par_4 = 1
+        self.move_count = 0
+        color = np.array([self.par_1,self.par_2,self.par_3])
         i = 0
         while i < 70:
             modulo = (i % (self.par_4 + self.par_5))
             if ((modulo >= 0) & (modulo < self.par_4)):
-                self.arr[i] = [self.par_1, self.par_2, self.par_3]
+                self.arr1[i] = color
+                self.arr2[i] = color
+                self.arr3[i] = color
+                self.arr4[i] = color
+                self.arr5[i] = color
+                self.arr6[i] = color
             i = i + 1
         
-        
+
 #NEW DATA ##############################
 def new_data():
     #All modes need to be checked in at the new_data lobby, from witch 
@@ -180,8 +231,11 @@ def new_data():
         change_master_brightness(incoming[1])
     elif(id == 255):
         change_BPM(incoming[1],incoming[2])
+    
+    
 
 def find_mode(data):
+    #finds the corrisponding mode and initialises its class as current_mode
     id = data[0]
     if(id == 1):
         return Mode_Solid_Color(id,data[1],data[2],data[3],data[4],data[5],data[6])
@@ -210,9 +264,33 @@ def color_del(ID):
     global colors
     colors.pop(ID)
 
+def finish():
+    arr1,arr2,arr3,arr4,arr5,arr6 = current_mode.get_arrays()
+    arr1 * master_brightness
+    arr2 * master_brightness
+    arr3 * master_brightness
+    arr4 * master_brightness
+    arr5 * master_brightness
+    arr6 * master_brightness
+    
+    for i in range(70):
+        test = arr1[i].tolist()
+        strip1[i] = test
+        test = arr2[i].tolist()
+        strip2[i] = test
+        test = arr3[i].tolist()
+        strip3[i] = test
+        test = arr4[i].tolist()
+        strip4[i] = test
+        test = arr5[i].tolist()
+        strip5[i] = test
+        test = arr6[i].tolist()
+        strip6[i] = test
+
+        
 
 #MAINLOOP     ######################################################################              
-refresh_rate  = 1 #ms
+refresh_rate  = 0 #s
 time_since_refresh = time.monotonic()
 
 current_mode = Debug()
@@ -224,6 +302,7 @@ while(True):
     #DER FUCKING INPUTHANDLER
     data = uart.read(1)
     if(data != None):
+        incoming = [0 for i in range(7)]
         incoming[0] = int.from_bytes(data,"big")
         incoming[1] = int.from_bytes(uart.read(1),"big")
         incoming[2] = int.from_bytes(uart.read(1),"big")
@@ -236,20 +315,13 @@ while(True):
     
     
 
-    if((currenttime - refresh_rate) > time_since_refresh):
+    if((time_since_refresh + refresh_rate) < currenttime):
         current_mode.frame_step()
-        
-        arr1 = current_mode.get_array()
-        #print(arr1[:10])
-        for i in range(70):
-            #print(type(strip1[i]))
-            strip1[i] = arr1[i][0],arr1[i][1],arr1[i][2]
-            strip2[i] = arr1[i][0],arr1[i][1],arr1[i][2]
-            strip3[i] = arr1[i][0],arr1[i][1],arr1[i][2]
-            strip4[i] = arr1[i][0],arr1[i][1],arr1[i][2]
-            strip5[i] = arr1[i][0],arr1[i][1],arr1[i][2]
-            strip6[i] = arr1[i][0],arr1[i][1],arr1[i][2]
-        
+        #current_mode.bpm_step()
+        #starttime = time.monotonic()
+        finish()
+        #endtime = time.monotonic()
+        #print(endtime - starttime)
         strip1.show()
         strip2.show()
         strip3.show()
