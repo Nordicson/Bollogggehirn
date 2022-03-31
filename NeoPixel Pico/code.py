@@ -101,6 +101,12 @@ class Debug(Mode):
         self.par_4 = 0
         self.par_5 = 0
         self.par_6 = 0
+        self.arr1 = numpy.array([helper2,helper2,helper2])
+        self.arr2 = numpy.array([helper2,helper2,helper2])
+        self.arr3 = numpy.array([helper2,helper2,helper2])
+        self.arr4 = numpy.array([helper2,helper2,helper2])
+        self.arr5 = numpy.array([helper2,helper2,helper2])
+        self.arr6 = numpy.array([helper2,helper2,helper2])
 
 class Mode_Solid_Color(Mode):
     def __init__(self, id, par_1, par_2, par_3, par_4, par_5, par_6):
