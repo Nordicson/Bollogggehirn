@@ -2,7 +2,7 @@
 #Die genauigkeit von time.monotonic() geht bergab nach einer stunde.
 
 import board,busio,digitalio,time,neopixel,random,math
-import ulab.numpy as numpy
+import ulab.numpy as np
 
 #SETUP ###############################################
 
@@ -16,19 +16,25 @@ pin_streifen_4 = board.GP5
 pin_streifen_5 = board.GP6
 pin_streifen_6 = board.GP7
 
+# pin_streifen_1 = digitalio.DigitalInOut(board.GP2)
+# pin_streifen_2 = digitalio.DigitalInOut(board.GP3)
+# pin_streifen_3 = digitalio.DigitalInOut(board.GP4)
+# pin_streifen_4 = digitalio.DigitalInOut(board.GP5)
+# pin_streifen_5 = digitalio.DigitalInOut(board.GP6)
+# pin_streifen_6 = digitalio.DigitalInOut(board.GP7)
+# pin_streifen_1.direction = digitalio.Direction.OUTPUT
+# pin_streifen_2.direction = digitalio.Direction.OUTPUT
+# pin_streifen_3.direction = digitalio.Direction.OUTPUT
+# pin_streifen_4.direction = digitalio.Direction.OUTPUT
+# pin_streifen_5.direction = digitalio.Direction.OUTPUT
+# pin_streifen_6.direction = digitalio.Direction.OUTPUT
+
 leds_strip_1 = 70
 leds_strip_2 = 70
 leds_strip_3 = 70
 leds_strip_4 = 70
 leds_strip_5 = 70
 leds_strip_6 = 70
-
-strip1 = [0 for i in range(leds_strip_1)]
-strip2 = [0 for i in range(leds_strip_2)]
-strip3 = [0 for i in range(leds_strip_3)]
-strip4 = [0 for i in range(leds_strip_4)]
-strip5 = [0 for i in range(leds_strip_5)]
-strip6 = [0 for i in range(leds_strip_6)]
 
 strip1 = neopixel.NeoPixel(pin_streifen_1, leds_strip_1, brightness = 1.0, auto_write = False)
 strip2 = neopixel.NeoPixel(pin_streifen_2, leds_strip_2, brightness = 1.0, auto_write = False)
@@ -44,14 +50,7 @@ strip4.fill((0,0,0))
 strip5.fill((0,0,0))
 strip6.fill((0,0,0))
 
-helper = [0.0 for i in range(70)]
-helper2 = numpy.array(helper)
-arr1 = numpy.array([helper2,helper2,helper2])
-arr2 = numpy.array([helper2,helper2,helper2])
-arr3 = numpy.array([helper2,helper2,helper2])
-arr4 = numpy.array([helper2,helper2,helper2])
-arr5 = numpy.array([helper2,helper2,helper2])
-arr6 = numpy.array([helper2,helper2,helper2])
+
 
 ###################################################################################
 master_brightness = 1.0
@@ -69,12 +68,12 @@ class Mode():
         self.par_4 = par_4
         self.par_5 = par_5
         self.par_6 = par_6
-        self.arr1 = numpy.array([helper2,helper2,helper2])
-        self.arr2 = numpy.array([helper2,helper2,helper2])
-        self.arr3 = numpy.array([helper2,helper2,helper2])
-        self.arr4 = numpy.array([helper2,helper2,helper2])
-        self.arr5 = numpy.array([helper2,helper2,helper2])
-        self.arr6 = numpy.array([helper2,helper2,helper2])
+        self.arr1 = np.empty((70,3))
+        self.arr2 = np.empty((70,3))
+        self.arr3 = np.empty((70,3))
+        self.arr4 = np.empty((70,3))
+        self.arr5 = np.empty((70,3))
+        self.arr6 = np.empty((70,3))
     
     def get_params(self):
         return [self.id, self.par_1, self.par_2, self.par_3, self.par_4, self.par_5, self.par_6]
@@ -101,54 +100,32 @@ class Debug(Mode):
         self.par_4 = 0
         self.par_5 = 0
         self.par_6 = 0
-        self.arr1 = numpy.array([helper2,helper2,helper2])
-        self.arr2 = numpy.array([helper2,helper2,helper2])
-        self.arr3 = numpy.array([helper2,helper2,helper2])
-        self.arr4 = numpy.array([helper2,helper2,helper2])
-        self.arr5 = numpy.array([helper2,helper2,helper2])
-        self.arr6 = numpy.array([helper2,helper2,helper2])
+        self.arr1 = np.empty((70,3))
+        self.arr2 = np.empty((70,3))
+        self.arr3 = np.empty((70,3))
+        self.arr4 = np.empty((70,3))
+        self.arr5 = np.empty((70,3))
+        self.arr6 = np.empty((70,3))
 
 class Mode_Solid_Color(Mode):
     def __init__(self, id, par_1, par_2, par_3, par_4, par_5, par_6):
         super().__init__(id, par_1, par_2, par_3, par_4, par_5, par_6)
-        self.arr1[0,:] = par_1
-        self.arr1[1,:] = par_2
-        self.arr1[2,:] = par_3
-        self.arr2[0,:] = par_1
-        self.arr2[1,:] = par_2
-        self.arr2[2,:] = par_3
-        self.arr3[0,:] = par_1
-        self.arr3[1,:] = par_2
-        self.arr3[2,:] = par_3
-        self.arr4[0,:] = par_1
-        self.arr4[1,:] = par_2
-        self.arr4[2,:] = par_3
-        self.arr5[0,:] = par_1
-        self.arr5[1,:] = par_2
-        self.arr5[2,:] = par_3
-        self.arr6[0,:] = par_1
-        self.arr6[1,:] = par_2
-        self.arr6[2,:] = par_3
+        color = np.array([par_1,par_2,par_3]) 
+        self.arr1[:] = color
+        self.arr2[:] = color
+        self.arr3[:] = color
+        self.arr4[:] = color
+        self.arr5[:] = color
+        self.arr6[:] = color
 
     def new_param(self):
-        self.arr1[0,:] = self.par_1
-        self.arr1[1,:] = self.par_2
-        self.arr1[2,:] = self.par_3
-        self.arr2[0,:] = self.par_1
-        self.arr2[1,:] = self.par_2
-        self.arr2[2,:] = self.par_3
-        self.arr3[0,:] = self.par_1
-        self.arr3[1,:] = self.par_2
-        self.arr3[2,:] = self.par_3
-        self.arr4[0,:] = self.par_1
-        self.arr4[1,:] = self.par_2
-        self.arr4[2,:] = self.par_3
-        self.arr5[0,:] = self.par_1
-        self.arr5[1,:] = self.par_2
-        self.arr5[2,:] = self.par_3
-        self.arr6[0,:] = self.par_1
-        self.arr6[1,:] = self.par_2
-        self.arr6[2,:] = self.par_3
+        color = np.array([self.par_1,self.par_2,self.par_3]) 
+        self.arr1[:] = color
+        self.arr2[:] = color
+        self.arr3[:] = color
+        self.arr4[:] = color
+        self.arr5[:] = color
+        self.arr6[:] = color
 
 class Mode_Checkerbox(Mode):
     def __init__(self,id, par_1, par_2, par_3, par_4, par_5, par_6):
@@ -157,47 +134,35 @@ class Mode_Checkerbox(Mode):
         if par_4 == 0:
             par_4 = 1
         self.move_count = 0
-
+        color = np.array([par_1,par_2,par_3])
         i = 0
         while i < 70:
             modulo = (i % (par_4 + par_5))
             if ((modulo >= 0) & (modulo < par_4)):
-                arr1[0,i] = par_1
-                arr1[1,i] = par_2
-                arr1[2,i] = par_3
-                arr2[0,i] = par_1
-                arr2[1,i] = par_2
-                arr2[2,i] = par_3
-                arr3[0,i] = par_1
-                arr3[1,i] = par_2
-                arr3[2,i] = par_3
-                arr4[0,i] = par_1
-                arr4[1,i] = par_2
-                arr4[2,i] = par_3
-                arr5[0,i] = par_1
-                arr5[1,i] = par_2
-                arr5[2,i] = par_3
-                arr6[0,i] = par_1
-                arr6[1,i] = par_2
-                arr6[2,i] = par_3
+                self.arr1[i] = color
+                self.arr2[i] = color
+                self.arr3[i] = color
+                self.arr4[i] = color
+                self.arr5[i] = color
+                self.arr6[i] = color
             i = i + 1
         
     def frame_step(self): 
   
         if self.move_count == self.par_6:
             
-            new_arr = numpy.roll(self.arr1.copy(),1)
-            self.arr1 = new_arr.copy()
-            new_arr = numpy.roll(self.arr2.copy(),1)
-            self.arr2 = new_arr.copy()
-            new_arr = numpy.roll(self.arr3.copy(),1)
-            self.arr3 = new_arr.copy()
-            new_arr = numpy.roll(self.arr4.copy(),1)
-            self.arr4 = new_arr.copy()
-            new_arr = numpy.roll(self.arr5.copy(),1)
-            self.arr5 = new_arr.copy()
-            new_arr = numpy.roll(self.arr6.copy(),1)
-            self.arr6 = new_arr.copy()
+            new_arr1 = np.roll(self.arr1.copy(),1,axis = 0)
+            self.arr1 = new_arr1.copy()
+            new_arr2 = np.roll(self.arr2.copy(),1,axis = 0)
+            self.arr2 = new_arr2.copy()
+            new_arr3 = np.roll(self.arr3.copy(),1,axis = 0)
+            self.arr3 = new_arr3.copy()
+            new_arr4 = np.roll(self.arr4.copy(),1,axis = 0)
+            self.arr4 = new_arr4.copy()
+            new_arr5 = np.roll(self.arr5.copy(),1,axis = 0)
+            self.arr5 = new_arr5.copy()
+            new_arr6 = np.roll(self.arr6.copy(),1,axis = 0)
+            self.arr6 = new_arr6.copy()
 
             self.move_count = 0
         else:
@@ -208,32 +173,27 @@ class Mode_Checkerbox(Mode):
                 self.move_count += 1
 
     def new_param(self):
-        if par_4 == 0:
-            par_4 = 1
-        self.move_count = 0
+        self.arr1 = np.empty((70,3))
+        self.arr2 = np.empty((70,3))
+        self.arr3 = np.empty((70,3))
+        self.arr4 = np.empty((70,3))
+        self.arr5 = np.empty((70,3))
+        self.arr6 = np.empty((70,3))
 
+        if self.par_4 == 0:
+            self.par_4 = 1
+        self.move_count = 0
+        color = np.array([self.par_1,self.par_2,self.par_3])
         i = 0
         while i < 70:
-            modulo = (i % (par_4 + self.par_5))
-            if ((modulo >= 0) & (modulo < par_4)):
-                self.arr1[0,i] = self.par_1
-                self.arr1[1,i] = self.par_2
-                self.arr1[2,i] = self.par_3
-                self.arr2[0,i] = self.par_1
-                self.arr2[1,i] = self.par_2
-                self.arr2[2,i] = self.par_3
-                self.arr3[0,i] = self.par_1
-                self.arr3[1,i] = self.par_2
-                self.arr3[2,i] = self.par_3
-                self.arr4[0,i] = self.par_1
-                self.arr4[1,i] = self.par_2
-                self.arr4[2,i] = self.par_3
-                self.arr5[0,i] = self.par_1
-                self.arr5[1,i] = self.par_2
-                self.arr5[2,i] = self.par_3
-                self.arr6[0,i] = self.par_1
-                self.arr6[1,i] = self.par_2
-                self.arr6[2,i] = self.par_3
+            modulo = (i % (self.par_4 + self.par_5))
+            if ((modulo >= 0) & (modulo < self.par_4)):
+                self.arr1[i] = color
+                self.arr2[i] = color
+                self.arr3[i] = color
+                self.arr4[i] = color
+                self.arr5[i] = color
+                self.arr6[i] = color
             i = i + 1
         
 
@@ -271,6 +231,8 @@ def new_data():
         change_master_brightness(incoming[1])
     elif(id == 255):
         change_BPM(incoming[1],incoming[2])
+    
+    
 
 def find_mode(data):
     #finds the corrisponding mode and initialises its class as current_mode
@@ -310,22 +272,25 @@ def finish():
     arr4 * master_brightness
     arr5 * master_brightness
     arr6 * master_brightness
+    
+    for i in range(70):
+        test = arr1[i].tolist()
+        strip1[i] = test
+        test = arr2[i].tolist()
+        strip2[i] = test
+        test = arr3[i].tolist()
+        strip3[i] = test
+        test = arr4[i].tolist()
+        strip4[i] = test
+        test = arr5[i].tolist()
+        strip5[i] = test
+        test = arr6[i].tolist()
+        strip6[i] = test
 
-    for i in range(70):
-        strip1[i] = [ int(arr1[0][i]) , int(arr1[1][i]) , int(arr1[2][i]) ]
-    for i in range(70):
-        strip2[i] = [ int(arr2[0][i]) , int(arr2[1][i]) , int(arr2[2][i]) ]
-    for i in range(70):
-        strip3[i] = [ int(arr3[0][i]) , int(arr3[1][i]) , int(arr3[2][i]) ]
-    for i in range(70):
-        strip4[i] = [ int(arr4[0][i]) , int(arr4[1][i]) , int(arr4[2][i]) ]
-    for i in range(70):
-        strip5[i] = [ int(arr5[0][i]) , int(arr5[1][i]) , int(arr5[2][i]) ]
-    for i in range(70):
-        strip6[i] = [ int(arr6[0][i]) , int(arr6[1][i]) , int(arr6[2][i]) ]
+        
 
 #MAINLOOP     ######################################################################              
-refresh_rate  = 1 #ms
+refresh_rate  = 0 #s
 time_since_refresh = time.monotonic()
 
 current_mode = Debug()
@@ -337,6 +302,7 @@ while(True):
     #DER FUCKING INPUTHANDLER
     data = uart.read(1)
     if(data != None):
+        incoming = [0 for i in range(7)]
         incoming[0] = int.from_bytes(data,"big")
         incoming[1] = int.from_bytes(uart.read(1),"big")
         incoming[2] = int.from_bytes(uart.read(1),"big")
@@ -349,12 +315,13 @@ while(True):
     
     
 
-    if((currenttime - refresh_rate) > time_since_refresh):
+    if((time_since_refresh + refresh_rate) < currenttime):
         current_mode.frame_step()
         #current_mode.bpm_step()
-
+        #starttime = time.monotonic()
         finish()
-        
+        #endtime = time.monotonic()
+        #print(endtime - starttime)
         strip1.show()
         strip2.show()
         strip3.show()
