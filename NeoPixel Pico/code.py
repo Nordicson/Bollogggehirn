@@ -1,7 +1,7 @@
 #Neopixel Handler, zweiter Teil des Bollogggehirn V4.0
 #Die genauigkeit von time.monotonic() geht bergab nach einer stunde.
 
-import board,busio,digitalio,time,neopixel,random,math
+import board,busio,time,neopixel,random,math, lookup
 import ulab.numpy as np
 
 #SETUP ###############################################
@@ -77,7 +77,7 @@ class Mode():
     def bpm_step(self):
         return
 
-
+#0
 class Debug(Mode):
     def __init__(self):
         self.id = 0
@@ -93,7 +93,7 @@ class Debug(Mode):
         self.arr4 = np.empty((70,3))
         self.arr5 = np.empty((70,3))
         self.arr6 = np.empty((70,3))
-
+#1
 class Mode_Solid_Color(Mode):
     def __init__(self, id, par_1, par_2, par_3, par_4, par_5, par_6):
         super().__init__(id, par_1, par_2, par_3, par_4, par_5, par_6)
@@ -113,7 +113,7 @@ class Mode_Solid_Color(Mode):
         self.arr4[:] = color
         self.arr5[:] = color
         self.arr6[:] = color
-
+#2
 class Mode_Checkerbox(Mode):
     def __init__(self,id, par_1, par_2, par_3, par_4, par_5, par_6):
         super().__init__(id,par_1, par_2, par_3, par_4, par_5, par_6)
@@ -182,6 +182,104 @@ class Mode_Checkerbox(Mode):
                 self.arr5[i] = color
                 self.arr6[i] = color
             i = i + 1
+#3
+class Mode_Noise_One_Color(Mode):
+    global colors
+    def __init__(self, id, par_1, par_2, par_3, par_4, par_5, par_6):
+        super().__init__(id, par_1, par_2, par_3, par_4, par_5, par_6)
+        self.move_count = 0
+        self.fade = np.array([1.0,1.0,1.0,1.0,1.0,1.0])
+        self.fade_count = 0
+        
+        color = np.array([par_1,par_2,par_3])
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr1[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr2[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr3[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr4[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr5[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr6[i] = color * noise[i]
+    
+    def new_param(self):
+        color = np.array([self.par_1,self.par_2,self.par_3])
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr1[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr2[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr3[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr4[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr5[i] = color * noise[i]
+        noise = lookup.get_70x_noise(random.randint(0,4))
+        for i in range(70):
+            self.arr6[i] = color * noise[i]
+    
+    def frame_step(self): 
+        for i in range(6):
+            if(self.fade[i] != 1.0):
+                if(self.fade[i] <= 0):
+                    self.fade[i] = 1.0
+                else:
+                    self.fade[i] -= 1/self.par_5
+                    
+        if self.move_count == self.par_6:
+            
+            new_arr1 = np.roll(self.arr1.copy(),1,axis = 0)
+            self.arr1 = new_arr1.copy()
+            new_arr2 = np.roll(self.arr2.copy(),1,axis = 0)
+            self.arr2 = new_arr2.copy()
+            new_arr3 = np.roll(self.arr3.copy(),1,axis = 0)
+            self.arr3 = new_arr3.copy()
+            new_arr4 = np.roll(self.arr4.copy(),1,axis = 0)
+            self.arr4 = new_arr4.copy()
+            new_arr5 = np.roll(self.arr5.copy(),1,axis = 0)
+            self.arr5 = new_arr5.copy()
+            new_arr6 = np.roll(self.arr6.copy(),1,axis = 0)
+            self.arr6 = new_arr6.copy()
+
+            self.move_count = 0
+        else:
+            #print(self.move_count)
+            if (self.move_count > self.par_6):
+                self.move_count = 0
+            else:
+                self.move_count += 1
+    def get_arrays(self):
+        new_arr1 = self.arr1 * self.fade[0]
+        new_arr2 = self.arr2 * self.fade[1]
+        new_arr3 = self.arr3 * self.fade[2]
+        new_arr4 = self.arr4 * self.fade[3]
+        new_arr5 = self.arr5 * self.fade[4]
+        new_arr6 = self.arr6 * self.fade[5]
+        
+        
+        return new_arr1,new_arr2,new_arr3,new_arr4,new_arr5,new_arr6
+    def bpm_step(self):
+        if(self.par_5 == 0):
+            return
+        if(self.fade_count == 6):
+            self.fade_count = 0
+        
+        self.fade[self.fade_count] -= 1/self.par_5
+        self.fade_count += 1
         
 
 #NEW DATA ##############################
@@ -229,12 +327,15 @@ def find_mode(data):
         return Mode_Solid_Color(id,data[1],data[2],data[3],data[4],data[5],data[6])
     if(id == 2):
         return Mode_Checkerbox(id,data[1],data[2],data[3],data[4],data[5],data[6])
+    if(id == 3):
+        return Mode_Noise_One_Color(id,data[1],data[2],data[3],data[4],data[5],data[6])
 
 # TOOLS ################################
 
 def change_BPM(BPM_new,tenth):
     global BPM
     BPM = BPM_new + tenth/10
+    print(BPM)
 
 def change_master_brightness(data):
     global master_brightness
@@ -256,12 +357,6 @@ def color_del(ID):
 def finish():
     global master_brightness
     arr1,arr2,arr3,arr4,arr5,arr6 = current_mode.get_arrays()
-#     arr1 * master_brightness
-#     arr2 * master_brightness
-#     arr3 * master_brightness
-#     arr4 * master_brightness
-#     arr5 * master_brightness
-#     arr6 * master_brightness
     new1 = arr1 * master_brightness
     new2 = arr2 * master_brightness
     new3 = arr3 * master_brightness
@@ -288,7 +383,7 @@ def finish():
 #MAINLOOP     ######################################################################              
 refresh_rate  = 0 #s
 time_since_refresh = time.monotonic()
-
+time_since_bpm = time.monotonic()
 current_mode = Debug()
 current_FX = Debug()
 
@@ -312,8 +407,14 @@ while(True):
     
 
     if((time_since_refresh + refresh_rate) < currenttime):
+        
         current_mode.frame_step()
-        #current_mode.bpm_step()
+        
+        if((time_since_bpm + (60/BPM) < currenttime)):
+            current_mode.bpm_step()
+            print("Beat")
+            time_since_bpm = currenttime
+        
         #starttime = time.monotonic()
         finish()
         #endtime = time.monotonic()
