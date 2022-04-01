@@ -502,6 +502,9 @@ def modestruct():
 
     MultiColor = func(2,"2 Checkerbox",modeselect)
     MultiColor.desc.extend(("R","G","B","ON","OFF","FPS"))
+    
+    OneColorNoise = func(3, "3 OneColorNoise",modeselect)
+    OneColorNoise.desc.extend(("R","G","B"," "," ","FPS"))
 
     print(modeselect.contents)
     
