@@ -76,7 +76,18 @@ def del_preset_file(filename):
         os.chdir("..")
         print("can not delete", filename)
         return False
-    
+
+def rename_preset_file(filename,new_filename):
+    os.chdir("presets")
+    try:
+        os.rename(filename,new_filename)
+        os.chdir("..")
+        return True
+    except:
+        os.chdir("..")
+        print("filename exists already")
+        return False
+
 def get_preset_content(filename):
     os.chdir("presets")
     content = []
@@ -93,7 +104,7 @@ def set_preset_content(filename,content):
     os.chdir("presets")
     string = ""
     for i in range(len(content)):
-        string += str(content[i][0]) #time_from_start
+        string += str(content[i][0]) #time
         string += ","
         string += str(content[i][1]) #mode
         string += ","
